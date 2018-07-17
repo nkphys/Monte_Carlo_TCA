@@ -83,10 +83,15 @@ void MCEngine::RUN_MC(){
             for(int iy=0;iy<ly_;iy++){
                 Observables_.SiSjQ_Mean_(ix,iy)=zero;
                 Observables_.SiSjQ_square_Mean_(ix,iy)=zero;
+                Observables_.SiSj_square_Mean_(ix,iy)=0.0;
+                Observables_.SiSj_Mean_(ix,iy)=0.0;
+
             }
         }
         Observables_.AVG_Total_Energy=0.0;
         Observables_.AVG_Total_Energy_sqr=0.0;
+        Observables_.Nematic_order_square_mean_=0.0;
+        Observables_.Nematic_order_mean_=0.0;
 
         MFParams_.etheta_avg.fill(0.0);
         MFParams_.ephi_avg.fill(0.0);
