@@ -33,6 +33,7 @@ public:
     void SiSjFULL();
 
     void SiSjQ_Average();
+    void SiSj_Average();
     void Total_Energy_Average(double Curr_QuantE, double CurrE);
 
     void OccDensity(int tlabel);
@@ -44,9 +45,14 @@ public:
     complex<double> SiSjQ_Mean(int i, int j);
     complex<double> SiSjQ_square_Mean(int i, int j);
 
+    double SiSj_Mean(int i, int j);
+    double SiSj_square_Mean(int i, int j);
+
     double BandWidth;
     double nia_t,nib_t,nic_t,n_t;
     Matrix<complex<double>> SiSjQ_, SiSjQ_Mean_, SiSjQ_square_Mean_;
+    Matrix<double> SiSj_Mean_, SiSj_square_Mean_;
+    double Nematic_order_mean_, Nematic_order_square_mean_;
     Parameters& Parameters_;
     Coordinates& Coordinates_;
     MFParams& MFParams_;
@@ -273,8 +279,8 @@ void Observables::Calculate_Nw(){
     //---------Read from input file-----------------------//
     string fileout="Nw.txt";
     double omega_min, omega_max, d_omega;
-    double eta = 0.002;
-    omega_min=-0.6;omega_max=0.6;d_omega=0.00025;
+    double eta = 0.005;
+    omega_min=1.0;omega_max=3.0;d_omega=0.00025;
     //---------------------------------------------------//
 
     int omega_index_max = int( (omega_max - omega_min)/(d_omega) );
@@ -545,6 +551,11 @@ complex<double> Observables::SiSjQ_Mean(int i,int j){return SiSjQ_Mean_(i,j);}
 complex<double> Observables::SiSjQ_square_Mean(int i,int j){return SiSjQ_square_Mean_(i,j);}
 
 
+double Observables::SiSj_Mean(int i,int j){return SiSj_Mean_(i,j);}
+
+double Observables::SiSj_square_Mean(int i,int j){return SiSj_square_Mean_(i,j);}
+
+
 void Observables::SiSjFULL(){
 
     double Cos_ij,Sin_ij,ei,ai,phase;
@@ -627,6 +638,23 @@ void Observables::SiSjQ_Average(){
 } // ----------
 
 
+
+void Observables::SiSj_Average(){
+
+    for(int x=0; x<lx_; x++) {
+        for(int y=0; y<ly_; y++) {
+            SiSj_Mean_(x,y) += SiSj_(x,y);
+            SiSj_square_Mean_(x,y) += ( SiSj_(x,y)*SiSj_(x,y) )   ;
+            //cout << qx << " "<< qy<< " "<<  SiSjQ_(qx,qy) << endl;
+        }
+    }
+
+    Nematic_order_mean_ += SiSj_(1,0) - SiSj_(0,1);
+    Nematic_order_square_mean_ += (SiSj_(1,0) - SiSj_(0,1) )*(SiSj_(1,0) - SiSj_(0,1) );
+
+} // ----------
+
+
 void Observables::Total_Energy_Average(double Curr_QuantE, double CurrE){
 
     AVG_Total_Energy += Curr_QuantE + CurrE;
@@ -667,7 +695,14 @@ void Observables::Initialize(){
     sz_.resize(space);
 
     dos.resize(4,801);   dos.fill(0.0);
+
+    Nematic_order_mean_ =0.0;
+    Nematic_order_square_mean_ =0.0;
+
     SiSj_.resize(lx_,ly_);
+    SiSj_Mean_.resize(lx_,ly_);
+    SiSj_square_Mean_.resize(lx_,ly_);
+
     SiSjQ_Mean_.resize(lx_,ly_);
     SiSjQ_square_Mean_.resize(lx_,ly_);
     SiSjQ_.resize(lx_,ly_);

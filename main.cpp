@@ -64,17 +64,18 @@ int main(int argc, char *argv[]) {
         //Hamiltonian_.Ham_.print();
         //Observables_.Calculate_Akw();
         //Observables_.Calculate_Akw_at_w(mu);
-        //Observables_.Calculate_Nw();
+        Observables_.Calculate_Nw();
 
     }
 
-    cout<<setprecision(9);
+    else{
+     cout<<setprecision(9);
      MCEngine MCEngine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
 
      Observables_.Initialize();     // Set All Observables to zero
 
      MCEngine_.RUN_MC();      // Monte-Carlo Engine
-
+    }
 
 
 

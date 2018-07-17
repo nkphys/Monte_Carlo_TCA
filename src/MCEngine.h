@@ -124,7 +124,8 @@ void MCEngine::RUN_MC(){
 
 
         file_out_progress<<"I_MC"<<setw(15)<<"S(0,1)"<<setw(15)<<"S(1,0)"
-                        <<setw(15)<<"S(0,Pi)"<<setw(15)<<"S(Pi,0)"<<setw(17)<<"< N_total >"
+                        <<setw(15)<<"S(0,Pi)"<<setw(15)<<"S(Pi,0)"<<setw(17)<<"S(0,0)"<<setw(17)<<"S(Pi,Pi)"<<setw(17)<<
+                          "S(Pi/2,Pi/2)"<<setw(17)<<"< N_total >"
                        <<setw(15)<<"E_CL"<<setw(15)<<"E_QM"<<setw(15)<<"mu"<< endl;
 
 
@@ -174,6 +175,8 @@ void MCEngine::RUN_MC(){
                 Hamiltonian_.InteractionsClusterCreate(i);
                 Hamiltonian_.DiagonalizeCluster(Parameters_.Dflag);
 
+                //n_states_occupied_zeroT=Parameters_.Fill*Hamiltonian_.eigsCluster_.size();
+                //initial_mu_guess=0.5*(Hamiltonian_.eigsCluster_[n_states_occupied_zeroT-1] + HamiltonianCluster_.eigs_[n_states_occupied_zeroT])
                 muu_prevCluster=Hamiltonian_.chemicalpotentialCluster(muu_prevCluster,Parameters_.Fill);
                 Prev_QuantECluster = Hamiltonian_.E_QMCluster();
 
@@ -289,10 +292,11 @@ void MCEngine::RUN_MC(){
             if(count < (Parameters_.IterMax - (Gap_bw_sweeps*(MC_sweeps_used_for_Avg - 1) + MC_sweeps_used_for_Avg)) ){
                 if ( (count%10==0) ) {
                     Observables_.SiSjFULL();
-                    file_out_progress << int(1.0*count) <<setw(20)<< Observables_.SiSj(0,1) <<setw(16)<< Observables_.SiSj(1,0)
+                    file_out_progress << int(1.0*count) <<setw(20)<<Observables_.SiSj(0,1) <<setw(16)<< Observables_.SiSj(1,0)
                                       <<setw(16)<< Observables_.SiSjQ(0,int(lx_/2)).real() <<setw(16)<< Observables_.SiSjQ(int(lx_/2),0).real()
-                                     <<setw(16)<< Hamiltonian_.ClusterDensity() <<setw(16)<< CurrE
-                                    <<setw(16)<< Curr_QuantECluster<<setw(15)<<Parameters_.mus<< endl;
+                                     <<setw(16)<<Observables_.SiSjQ(0,0).real() <<setw(16)<< Observables_.SiSjQ(int(lx_/2),int(lx_/2)).real() <<setw(16)<<
+                                      Observables_.SiSjQ(int(lx_/4),int(lx_/4)).real() <<setw(16)<< Hamiltonian_.ClusterDensity() <<setw(16)<< CurrE
+                                    <<setw(16)<< Curr_QuantECluster<<setw(15)<<Parameters_.mus_Cluster<< endl;
                 }
             }
             //Average and Std. deviation is calculated is done
@@ -301,7 +305,7 @@ void MCEngine::RUN_MC(){
                 if(measure_start==0){
                     measure_start++;
                     file_out_progress<<"----------Measurement is started----------"<<endl;
-                    file_out_progress<<"Avg{S(pi,0)}  Avg{S(0,pi)}  std.dev{S(pi,0)}  std.dev{S(0,pi)}  Avg{E_classical}  std.dev{E_classical}"<<endl;
+                    file_out_progress<<"I_MC      Avg{S(pi,0)}    Avg{S(0,pi)}    std.dev{S(pi,0)}   std.dev{S(0,pi)} Avg{S(1,0)}  Avg{S(0,1)}  std.dev{S(1,0)}  std.dev{S(0,1)}  Avg{Nematic_order}    std.dev{Nematic_order}     Avg{E_classical}  std.dev{E_classical}"<<endl;
                 }
                 int temp_count=count -
                         (Parameters_.IterMax - (Gap_bw_sweeps*(MC_sweeps_used_for_Avg - 1) + MC_sweeps_used_for_Avg));
@@ -310,6 +314,7 @@ void MCEngine::RUN_MC(){
                     Confs_used=Confs_used+1;
                     Observables_.SiSjFULL();
                     Observables_.SiSjQ_Average();
+                    Observables_.SiSj_Average();
                     //Just Classical Energy
                     Observables_.Total_Energy_Average(0.0, CurrE);
 
@@ -317,9 +322,12 @@ void MCEngine::RUN_MC(){
 
                     //double MC_steps_Avg_insitu = (1.0 + 1.0*(count - (Parameters_.IterMax - MC_steps_used_for_Avg)));
 
-                    file_out_progress << int(1.0*count) <<setw(20)<< Observables_.SiSjQ_Mean(int(lx_/2),0).real()/(Confs_used*1.0)
+                    file_out_progress << int(1.0*count) <<setw(20)<<
+                                         Observables_.SiSjQ_Mean(int(lx_/2),0).real()/(Confs_used*1.0)
                                       <<setw(16)<<Observables_.SiSjQ_Mean(0,int(lx_/2)).real()/(Confs_used*1.0)
                                      <<setw(16)<<
+
+
                                        sqrt(
                                        (( Observables_.SiSjQ_square_Mean(int(lx_/2),0)/(Confs_used*1.0) ) -
                                         ((Observables_.SiSjQ_Mean(int(lx_/2),0)*Observables_.SiSjQ_Mean(int(lx_/2),0) )/(Confs_used*Confs_used*1.0) ) ).real()
@@ -331,6 +339,32 @@ void MCEngine::RUN_MC(){
                                        ((Observables_.SiSjQ_Mean(0,int(lx_/2))*Observables_.SiSjQ_Mean(0,int(lx_/2)) )/(Confs_used*Confs_used*1.0) ) ).real()
                                           )
                                       <<setw(16)<<
+
+
+                                        Observables_.SiSj_Mean(1,0)/(Confs_used*1.0)
+                                     <<setw(16)<<Observables_.SiSj_Mean(0,1)/(Confs_used*1.0)
+                                    <<setw(16)<<
+                                      sqrt(
+                                      (( Observables_.SiSj_square_Mean(1,0)/(Confs_used*1.0) ) -
+                                       ((Observables_.SiSj_Mean(1,0)*Observables_.SiSj_Mean(1,0) )/(Confs_used*Confs_used*1.0) ) )
+                                          )
+
+                                   <<setw(16)<<
+                                     sqrt(
+                                     (( Observables_.SiSj_square_Mean(0,1)/(Confs_used*1.0) ) -
+                                      ((Observables_.SiSj_Mean(0,1)*Observables_.SiSj_Mean(0,1) )/(Confs_used*Confs_used*1.0) ) )
+                                         )
+                                     <<setw(16)<<
+                                       Observables_.Nematic_order_mean_/(Confs_used*1.0)
+
+                                     <<setw(16)<<
+                                    sqrt(
+                                           (( Observables_.Nematic_order_square_mean_/(Confs_used*1.0) ) -
+                                            ((Observables_.Nematic_order_mean_*Observables_.Nematic_order_mean_)/(Confs_used*Confs_used*1.0) ) )
+                                        )
+
+
+                                    <<setw(32)<<
                                        Observables_.AVG_Total_Energy/(Confs_used*1.0)
                                         <<setw(16)<<
                                        sqrt(  (Observables_.AVG_Total_Energy_sqr/(Confs_used*1.0)) -
