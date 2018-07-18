@@ -649,8 +649,8 @@ void Observables::SiSj_Average(){
         }
     }
 
-    Nematic_order_mean_ += SiSj_(1,0) - SiSj_(0,1);
-    Nematic_order_square_mean_ += (SiSj_(1,0) - SiSj_(0,1) )*(SiSj_(1,0) - SiSj_(0,1) );
+    Nematic_order_mean_ += fabs(SiSj_(1,0) - SiSj_(0,1))*0.5;
+    Nematic_order_square_mean_ += (SiSj_(1,0) - SiSj_(0,1) )*(SiSj_(1,0) - SiSj_(0,1) )*0.25;
 
 } // ----------
 

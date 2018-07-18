@@ -401,7 +401,7 @@ void Hamiltonian::InteractionsClusterCreate(int Center_site){
     }
 
     //HUND COUPLING
-    for(int i=0;i<ns;i++) {  // For each site
+    for(int i=0;i<ns;i++) {  // For each site in cluster
         x_pos = Coordinates_.indx(Center_site) - int(Parameters_.lx_cluster/2) + CoordinatesCluster_.indx(i);
         y_pos = Coordinates_.indy(Center_site) - int(Parameters_.ly_cluster/2) + CoordinatesCluster_.indy(i);
         x_pos = (x_pos + Coordinates_.lx_)%Coordinates_.lx_;
