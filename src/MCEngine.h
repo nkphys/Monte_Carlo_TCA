@@ -18,7 +18,7 @@ public:
           MFParams_(MFParams__), Hamiltonian_(Hamiltonian__),
           Observables_(Observables__),
           lx_(Parameters_.lx), ly_(Parameters_.ly), ns_(Parameters_.ns),
-          orbs_(Parameters_.orbs)
+          orbs_(Parameters_.orbs), ED_(Parameters_.ED_)
     {
 
     }
@@ -32,6 +32,7 @@ public:
     Hamiltonian &Hamiltonian_;
     Observables &Observables_;
     const int lx_, ly_, ns_, orbs_;
+    bool ED_;
 
 };
 
@@ -151,15 +152,20 @@ void MCEngine::RUN_MC(){
         cout<<"Initial Total Energy[Full System] = "<<PrevE+Prev_QuantE<<endl;
         cout<<"Initial mu="<<muu_prev<<endl;
         //for(int i=0;i<10;i++){
-          //  cout<<i<<"   "<<Hamiltonian_.eigs_[i]<<endl;
-       // }
+        //  cout<<i<<"   "<<Hamiltonian_.eigs_[i]<<endl;
+        // }
 
 
 
         int Confs_used=0;
         int measure_start=0;
+        muu_prevCluster=muu_prev;
 
-        muu_prevCluster =muu_prev;
+        if(ED_){
+            Prev_QuantECluster=Prev_QuantE;
+            Hamiltonian_.eigsCluster_saved_=Hamiltonian_.eigs_saved_;
+        }
+
         for(int count=0;count<Parameters_.IterMax;count++){
             //if (count == 1){
             // Parameters_.beta = double(11604.0/ Parameters_.temp);
@@ -175,17 +181,26 @@ void MCEngine::RUN_MC(){
 
 
                 //***Before change*************//
-                PrevE = Hamiltonian_.GetCLEnergy();
 
-                Hamiltonian_.InteractionsClusterCreate(i);
-                Hamiltonian_.DiagonalizeCluster(Parameters_.Dflag);
+                if(ED_==false){
+                    //TCA is used
+                    PrevE = Hamiltonian_.GetCLEnergy();
 
-                //n_states_occupied_zeroT=Parameters_.Fill*Hamiltonian_.eigsCluster_.size();
-                //initial_mu_guess=0.5*(Hamiltonian_.eigsCluster_[n_states_occupied_zeroT-1] + HamiltonianCluster_.eigs_[n_states_occupied_zeroT])
-                muu_prevCluster=Hamiltonian_.chemicalpotentialCluster(muu_prevCluster,Parameters_.Fill);
-                Prev_QuantECluster = Hamiltonian_.E_QMCluster();
+                    Hamiltonian_.InteractionsClusterCreate(i);
+                    Hamiltonian_.DiagonalizeCluster(Parameters_.Dflag);
 
-                Hamiltonian_.copy_eigs_Cluster(1);
+                    //n_states_occupied_zeroT=Parameters_.Fill*Hamiltonian_.eigsCluster_.size();
+                    //initial_mu_guess=0.5*(Hamiltonian_.eigsCluster_[n_states_occupied_zeroT-1] + HamiltonianCluster_.eigs_[n_states_occupied_zeroT])
+                    muu_prevCluster=Hamiltonian_.chemicalpotentialCluster(muu_prevCluster,Parameters_.Fill);
+                    Prev_QuantECluster = Hamiltonian_.E_QMCluster();
+
+                    Hamiltonian_.copy_eigs_Cluster(1);
+                }
+                else{
+                assert(ED_);
+                }
+
+
                 //*******************************//
 
 
@@ -215,7 +230,7 @@ void MCEngine::RUN_MC(){
                   P12 = log (P)
                   */
 
-                 //same mu-refrence is used, otherwise engine does not work properly
+                //same mu-refrence is used, otherwise engine does not work properly
                 P_new = ProbCluster(muu_prev, muu_prev);
                 P12 = P_new - Parameters_.beta*((CurrE)-(PrevE));
                 //P12 = - Parameters_.beta*((CurrE)-(PrevE));
@@ -230,15 +245,15 @@ void MCEngine::RUN_MC(){
 
                 //Heat bath algorithm [See page-129 of Prof. Elbio's Book]
                 //Heat bath algorithm works for small changes i.e. when P12~1.0
-              //  if (Heat_Bath_Algo){
-               //     P12 =P12/(1.0+P12);
-              //  }
+                //  if (Heat_Bath_Algo){
+                //     P12 =P12/(1.0+P12);
+                //  }
 
 
                 //Metropolis Algotithm
-               // if (Metropolis_Algo){
+                // if (Metropolis_Algo){
                 //    P12=min(1.0,P12);
-               // }
+                // }
 
 
 
@@ -253,19 +268,25 @@ void MCEngine::RUN_MC(){
                 //ACCEPTED
                 if(P12 > 0){
                     Parameters_.AccCount[0]++;
+                    act=1;
+                    if(ED_){
                     PrevE=CurrE;
                     Prev_QuantECluster = Curr_QuantECluster;
-                    //Hamiltonian_.copy_eigs(1);
+                    Hamiltonian_.copy_eigs_Cluster(1);
                     muu_prevCluster=Parameters_.mus_Cluster;
-                    act=1;
+                    }
+
                 }
                 else if ( exp(P12) > ( 1.0 - MFParams_.random() ) ) {
                     Parameters_.AccCount[0]++;
+                    act=1;
+                    if(ED_){
                     PrevE=CurrE;
                     Prev_QuantECluster = Curr_QuantECluster;
-                    //Hamiltonian_.copy_eigs(1);
+                    Hamiltonian_.copy_eigs_Cluster(1);
                     muu_prevCluster=Parameters_.mus_Cluster;
-                    act=1;
+                    }
+
                 }
 
                 //REJECTED
@@ -275,6 +296,7 @@ void MCEngine::RUN_MC(){
                     MFParams_.etheta(x,y) = saved_Params[0];
                     MFParams_.ephi(x,y)   = saved_Params[1];
                 }
+
 
                 // if ((act == 1) && (count<1000)) {
 
@@ -300,7 +322,7 @@ void MCEngine::RUN_MC(){
                     file_out_progress << int(1.0*count) <<setw(20)<<Observables_.SiSj(0,1) <<setw(16)<< Observables_.SiSj(1,0)
                                       <<setw(16)<< Observables_.SiSjQ(0,int(lx_/2)).real() <<setw(16)<< Observables_.SiSjQ(int(lx_/2),0).real()
                                      <<setw(16)<<Observables_.SiSjQ(0,0).real() <<setw(16)<< Observables_.SiSjQ(int(lx_/2),int(lx_/2)).real() <<setw(16)<<
-                                      Observables_.SiSjQ(int(lx_/4),int(lx_/4)).real() <<setw(16)<< Hamiltonian_.ClusterDensity() <<setw(16)<< CurrE
+                                       Observables_.SiSjQ(int(lx_/4),int(lx_/4)).real() <<setw(16)<< Hamiltonian_.ClusterDensity() <<setw(16)<< CurrE
                                     <<setw(16)<< Curr_QuantECluster<<setw(15)<<Parameters_.mus_Cluster<< endl;
                 }
             }
@@ -334,47 +356,47 @@ void MCEngine::RUN_MC(){
 
 
                                        sqrt(
-                                       (( Observables_.SiSjQ_square_Mean(int(lx_/2),0)/(Confs_used*1.0) ) -
-                                        ((Observables_.SiSjQ_Mean(int(lx_/2),0)*Observables_.SiSjQ_Mean(int(lx_/2),0) )/(Confs_used*Confs_used*1.0) ) ).real()
+                                           (( Observables_.SiSjQ_square_Mean(int(lx_/2),0)/(Confs_used*1.0) ) -
+                                            ((Observables_.SiSjQ_Mean(int(lx_/2),0)*Observables_.SiSjQ_Mean(int(lx_/2),0) )/(Confs_used*Confs_used*1.0) ) ).real()
                                            )
 
                                     <<setw(16)<<
                                       sqrt(
-                                      (( Observables_.SiSjQ_square_Mean(0,int(lx_/2))/(Confs_used*1.0) ) -
-                                       ((Observables_.SiSjQ_Mean(0,int(lx_/2))*Observables_.SiSjQ_Mean(0,int(lx_/2)) )/(Confs_used*Confs_used*1.0) ) ).real()
+                                          (( Observables_.SiSjQ_square_Mean(0,int(lx_/2))/(Confs_used*1.0) ) -
+                                           ((Observables_.SiSjQ_Mean(0,int(lx_/2))*Observables_.SiSjQ_Mean(0,int(lx_/2)) )/(Confs_used*Confs_used*1.0) ) ).real()
                                           )
-                                      <<setw(16)<<
-
-
-                                        Observables_.SiSj_Mean(1,0)/(Confs_used*1.0)
-                                     <<setw(16)<<Observables_.SiSj_Mean(0,1)/(Confs_used*1.0)
-                                    <<setw(16)<<
-                                      sqrt(
-                                      (( Observables_.SiSj_square_Mean(1,0)/(Confs_used*1.0) ) -
-                                       ((Observables_.SiSj_Mean(1,0)*Observables_.SiSj_Mean(1,0) )/(Confs_used*Confs_used*1.0) ) )
-                                          )
-
                                    <<setw(16)<<
-                                     sqrt(
-                                     (( Observables_.SiSj_square_Mean(0,1)/(Confs_used*1.0) ) -
-                                      ((Observables_.SiSj_Mean(0,1)*Observables_.SiSj_Mean(0,1) )/(Confs_used*Confs_used*1.0) ) )
-                                         )
-                                     <<setw(16)<<
-                                       Observables_.Nematic_order_mean_/(Confs_used*1.0)
-
-                                     <<setw(16)<<
-                                    sqrt(
-                                           (( Observables_.Nematic_order_square_mean_/(Confs_used*1.0) ) -
-                                            ((Observables_.Nematic_order_mean_*Observables_.Nematic_order_mean_)/(Confs_used*Confs_used*1.0) ) )
-                                        )
 
 
-                                    <<setw(32)<<
-                                       Observables_.AVG_Total_Energy/(Confs_used*1.0)
-                                        <<setw(16)<<
-                                       sqrt(  (Observables_.AVG_Total_Energy_sqr/(Confs_used*1.0)) -
-                                          ((Observables_.AVG_Total_Energy*Observables_.AVG_Total_Energy)/(Confs_used*Confs_used*1.0))  )
-                                   <<endl;
+                                     Observables_.SiSj_Mean(1,0)/(Confs_used*1.0)
+                                  <<setw(16)<<Observables_.SiSj_Mean(0,1)/(Confs_used*1.0)
+                                 <<setw(16)<<
+                                   sqrt(
+                                       (( Observables_.SiSj_square_Mean(1,0)/(Confs_used*1.0) ) -
+                                        ((Observables_.SiSj_Mean(1,0)*Observables_.SiSj_Mean(1,0) )/(Confs_used*Confs_used*1.0) ) )
+                                       )
+
+                                <<setw(16)<<
+                                  sqrt(
+                                      (( Observables_.SiSj_square_Mean(0,1)/(Confs_used*1.0) ) -
+                                       ((Observables_.SiSj_Mean(0,1)*Observables_.SiSj_Mean(0,1) )/(Confs_used*Confs_used*1.0) ) )
+                                      )
+                               <<setw(16)<<
+                                 Observables_.Nematic_order_mean_/(Confs_used*1.0)
+
+                              <<setw(16)<<
+                                sqrt(
+                                    (( Observables_.Nematic_order_square_mean_/(Confs_used*1.0) ) -
+                                     ((Observables_.Nematic_order_mean_*Observables_.Nematic_order_mean_)/(Confs_used*Confs_used*1.0) ) )
+                                    )
+
+
+                             <<setw(32)<<
+                               Observables_.AVG_Total_Energy/(Confs_used*1.0)
+                            <<setw(16)<<
+                              sqrt(  (Observables_.AVG_Total_Energy_sqr/(Confs_used*1.0)) -
+                                     ((Observables_.AVG_Total_Energy*Observables_.AVG_Total_Energy)/(Confs_used*Confs_used*1.0))  )
+                           <<endl;
 
                 }
 

@@ -1,5 +1,6 @@
-Xsite=8
-Ysite=8
+Perform_ED=0
+Xsite=6
+Ysite=6
 TwistedBoundaryCond_mx=0
 TwistedBoundaryCond_my=0
 TBC_cellsX=32
@@ -23,5 +24,5 @@ MaxMCsweeps=500
 Last_n_sweeps_for_measurement=20
 Measurement_after_each_m_sweeps=5
 
-Cluster_lx=4
-Cluster_ly=4
+Cluster_lx=6
+Cluster_ly=6

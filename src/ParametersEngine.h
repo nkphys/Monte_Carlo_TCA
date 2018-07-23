@@ -11,6 +11,7 @@ public:
     double mus, mus_Cluster, Fill,pi,J_NN,J_NNN,J_HUND,k_const,lamda_12,lamda_66;
 
     bool Cooling_;
+    bool ED_;
 
     bool Metropolis_Algorithm;
     bool Heat_Bath_Algorithm;
@@ -37,6 +38,7 @@ void Parameters::Initialize(string inputfile_){
     maxmoment=1.0;
     double cooling_double;
     double metropolis_double;
+    double ED_double;
 
     cout << "____________________________________" << endl;
     cout << "Reading the inputfile: " << inputfile_ << endl;
@@ -108,6 +110,20 @@ void Parameters::Initialize(string inputfile_){
     }
 
 
+
+    ED_double=double(matchstring(inputfile_,"Perform_ED"));
+    if(ED_double==1.0){
+        ED_=true;
+        lx_cluster=lx;
+        ly_cluster=ly;
+    }
+    else if(ED_double==0.0){
+        ED_=false;
+    }
+    else{
+        cout<<"ERROR: Perform_ED can be only 1 (true) or 0 (false)"<<endl;
+        assert(ED_double==0.0);
+    }
 
 
 
