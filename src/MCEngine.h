@@ -329,6 +329,9 @@ void MCEngine::RUN_MC(){
             //Average and Std. deviation is calculated is done
             else{
 
+
+
+
                 if(measure_start==0){
                     measure_start++;
                     file_out_progress<<"----------Measurement is started----------"<<endl;
@@ -338,6 +341,27 @@ void MCEngine::RUN_MC(){
                         (Parameters_.IterMax - (Gap_bw_sweeps*(MC_sweeps_used_for_Avg - 1) + MC_sweeps_used_for_Avg));
                 int zero_or_not = temp_count % (Gap_bw_sweeps + 1);
                 if( zero_or_not==0 ){
+
+                    if((Parameters_.Saving_Microscopic_States==true) &&
+                       (Confs_used<Parameters_.No_Of_Microscopic_States)
+                            ){
+
+                        char Confs_char[50];
+                        sprintf(Confs_char,"%d",Confs_used);
+                        string File_Out_theta_phi_microState = "ThetaPhi_Temp" + string(temp_char) +
+                                                        "MicroState" + string(Confs_char) +".txt";
+                        ofstream File_Out_Theta_Phi_MicroState(File_Out_theta_phi_microState.c_str());
+
+
+                        File_Out_Theta_Phi_MicroState<<"#x"<<setw(15)<<"y"<<setw(15)<<"Theta(x,y)"<<setw(15)<<"Phi(x,y)"<<endl;
+                        for(int ix=0;ix<lx_;ix++){
+                            for(int iy =0;iy<ly_;iy++){
+                                File_Out_Theta_Phi_MicroState<<ix<<setw(15)<<iy<<setw(15)<<MFParams_.etheta(ix,iy)<<setw(15)<<MFParams_.ephi(ix,iy)<<endl;
+                            }}
+
+                    }
+
+
                     Confs_used=Confs_used+1;
                     Observables_.SiSjFULL();
                     Observables_.SiSjQ_Average();

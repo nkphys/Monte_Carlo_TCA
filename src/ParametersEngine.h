@@ -16,6 +16,13 @@ public:
     bool Metropolis_Algorithm;
     bool Heat_Bath_Algorithm;
 
+    /*
+SavingMicroscopicStates=1
+NoOfMicroscopicStates=50
+      */
+    bool Saving_Microscopic_States;
+    int No_Of_Microscopic_States;
+
     double temp_max, beta_min;
     double temp_min, beta_max;
     double d_Temp;
@@ -39,6 +46,8 @@ void Parameters::Initialize(string inputfile_){
     double cooling_double;
     double metropolis_double;
     double ED_double;
+    int SavingMicroscopicStates_int;
+
 
     cout << "____________________________________" << endl;
     cout << "Reading the inputfile: " << inputfile_ << endl;
@@ -51,6 +60,20 @@ void Parameters::Initialize(string inputfile_){
     TBC_cellsY = int(matchstring(inputfile_,"TBC_cellsY"));
     lx_cluster = int(matchstring(inputfile_,"Cluster_lx"));
     ly_cluster = int(matchstring(inputfile_,"Cluster_ly"));
+    SavingMicroscopicStates_int = int (matchstring(inputfile_,"SavingMicroscopicStates"));
+
+    assert(SavingMicroscopicStates_int==1 ||
+           SavingMicroscopicStates_int==0);
+    if(SavingMicroscopicStates_int==1){
+        Saving_Microscopic_States=true;
+    }
+    else{
+        Saving_Microscopic_States=false;
+    }
+
+
+    No_Of_Microscopic_States = int(matchstring(inputfile_,"NoOfMicroscopicStates"));
+
 
 
     ns = lx*ly;
