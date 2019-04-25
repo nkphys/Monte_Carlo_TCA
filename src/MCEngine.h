@@ -239,7 +239,12 @@ void MCEngine::RUN_MC(){
                   */
 
                 //same mu-refrence is used, otherwise engine does not work properly
+                if(Parameters_.J_HUND !=0.0){
                 P_new = ProbCluster(muu_prev, muu_prev);
+                }
+                else{
+                 P_new = 0.0;
+                }
                 P12 = P_new - Parameters_.beta*((CurrE)-(PrevE));
                 //P12 = - Parameters_.beta*((CurrE)-(PrevE));
                 //cout<<P12<<endl;
