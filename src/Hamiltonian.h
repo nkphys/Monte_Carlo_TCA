@@ -10,7 +10,7 @@
 #ifndef Hamiltonian_class
 #define Hamiltonian_class
 
-extern "C" void   zheev_(char *,char *,int *,std::complex<double> *, int *, double *,
+extern "C" void   zheev_(char* ,char *,int *,std::complex<double> *, int *, double *,
                          std::complex<double> *,int *, double *, int *);
 
 
@@ -460,7 +460,6 @@ void Hamiltonian::Check_Hermiticity()
 
 
 
-
 void Hamiltonian::Diagonalize(char option){
 
     //extern "C" void   zheev_(char *,char *,int *,std::complex<double> *, int *, double *,
@@ -490,6 +489,8 @@ void Hamiltonian::Diagonalize(char option){
         perror("diag: zheev: failed with info!=0.\n");
     }
 
+
+    cout<<""<<endl;
     // Ham_.print();
 
     //  for(int i=0;i<eigs_.size();i++){

@@ -7,24 +7,24 @@ TBC_cellsX=32
 TBC_cellsY=32
 Orbitals=3
 Fill=0.666666667
-RandomSeed=3
-J_NN=1.5
-J_NNN=1.0
-J_HUND=0.02
+RandomSeed=5
+J_NN=0.015
+J_NNN=0.010
+J_HUND=0.0
 
 SavingMicroscopicStates=1
-NoOfMicroscopicStates=20
+NoOfMicroscopicStates=100
 
 Cooling=0
 Temperature_min=20.0
 Temperature_max=40.0
 dTemperature=10.0
 
-Temperature=10
+Temperature=5.0
 
 Metropolis_Algo=1
-MaxMCsweeps=1000
-Last_n_sweeps_for_measurement=50
+MaxMCsweeps=10000
+Last_n_sweeps_for_measurement=300
 Measurement_after_each_m_sweeps=5
 
 Cluster_lx=6

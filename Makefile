@@ -4,7 +4,7 @@
 
 EXENAME  = sf
 ### ------ Personal PC compilation ------------
-CXX     = g++
+CXX     = clang++
 CPPFLAGS = -std=c++11
 LDFLAGS  = -llapack -lblas
 

@@ -186,15 +186,20 @@ void MCEngine::RUN_MC(){
                     //TCA is used
                     PrevE = Hamiltonian_.GetCLEnergy();
 
+                    if(Parameters_.J_HUND !=0.0){
                     Hamiltonian_.InteractionsClusterCreate(i);
                     Hamiltonian_.DiagonalizeCluster(Parameters_.Dflag);
-
                     //n_states_occupied_zeroT=Parameters_.Fill*Hamiltonian_.eigsCluster_.size();
                     //initial_mu_guess=0.5*(Hamiltonian_.eigsCluster_[n_states_occupied_zeroT-1] + HamiltonianCluster_.eigs_[n_states_occupied_zeroT])
                     muu_prevCluster=Hamiltonian_.chemicalpotentialCluster(muu_prevCluster,Parameters_.Fill);
                     Prev_QuantECluster = Hamiltonian_.E_QMCluster();
-
                     Hamiltonian_.copy_eigs_Cluster(1);
+                    }
+                    else{
+                        assert(Parameters_.J_HUND==0.0);
+                        Parameters_.mus_Cluster=0.0;
+                        Curr_QuantECluster=0.0;
+                    }
                 }
                 else{
                 assert(ED_);
@@ -213,14 +218,17 @@ void MCEngine::RUN_MC(){
                 MFParams_.FieldThrow(i);
                 CurrE = Hamiltonian_.GetCLEnergy();
 
-
+                if(Parameters_.J_HUND !=0.0){
                 Hamiltonian_.InteractionsClusterCreate(i);
                 Hamiltonian_.DiagonalizeCluster(Parameters_.Dflag);
-
-
-                Parameters_.mus_Cluster=Hamiltonian_.chemicalpotentialCluster(muu_prevCluster,Parameters_.Fill);
-                //
+                Parameters_.mus_Cluster=Hamiltonian_.chemicalpotentialCluster(muu_prevCluster,Parameters_.Fill);    
                 Curr_QuantECluster = Hamiltonian_.E_QMCluster();
+                }
+                else{
+                    assert(Parameters_.J_HUND==0.0);
+                    Parameters_.mus_Cluster=0.0;
+                    Curr_QuantECluster=0.0;
+                }
 
                 //Ratio of Quantum partition functions
                 /*P = [ Tr(exp(-beta(Hquant_new)))/Tr(exp(-beta(Hquant_old)))]*
